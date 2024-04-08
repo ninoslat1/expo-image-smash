@@ -9,6 +9,8 @@ import CircleButton from './components/CircleButton'
 import EmojiPicker from './components/EmojiPicker'
 import EmojiList from './templates/EmojiList'
 import EmojiSticker from './components/EmojiSticker'
+import {GestureHandlerRootView} from 'react-native-gesture-handler'
+import * as MediaLib from 'expo-media-library'
 
 const PlaceholderImage = require('./assets/bg.png')
 
@@ -17,6 +19,11 @@ export default function App() {
   const [showAppOptions, setShowAppOptions] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [pickedEmoji, setPickedEmoji] = useState(null)
+  const [status, requestPermission] = MediaLib.usePermissions()
+
+  if(status === null){
+    requestPermission()
+  }
 
   const onReset = () => {
     setShowAppOptions(false);
@@ -49,7 +56,7 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.imageContainer}>
         <ImageViewer  placeholderImageSource={PlaceholderImage} selectedImage={selectedImage} />
         {pickedEmoji && <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />}
@@ -72,7 +79,7 @@ export default function App() {
         <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose}/>
       </EmojiPicker>
       <StatusBar style="auto" />
-    </View>
+    </GestureHandlerRootView>
   )
 }
 
