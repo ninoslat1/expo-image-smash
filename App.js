@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, Platform } from 'react-native'
 import ImageViewer from './components/ImageViewer'
 import Button from './components/Button'
 import * as ImagePicker from 'expo-image-picker'
@@ -12,6 +12,8 @@ import EmojiSticker from './components/EmojiSticker'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import * as MediaLib from 'expo-media-library'
 import {captureRef} from 'react-native-view-shot'
+import domtoimage from 'dom-to-image'
+import { getCurrentDate } from './utils/currentDateFormatter'
 
 const PlaceholderImage = require('./assets/bg.png')
 
@@ -22,6 +24,7 @@ export default function App() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [pickedEmoji, setPickedEmoji] = useState(null)
   const [status, requestPermission] = MediaLib.usePermissions()
+  const timestamp = getCurrentDate()
 
   if(status === null){
     requestPermission()
@@ -40,19 +43,36 @@ export default function App() {
   };
 
   const onSaveImageAsync = async () => {
-    try{
-      const localUri = await captureRef(imageRef, {
-        height: 440,
-        quality: 1
-      })
+    if(Platform.OS === "web"){
+      try{
+        const localUri = await captureRef(imageRef, {
+          height: 440,
+          quality: 1
+        })
 
-      await MediaLib.saveToLibraryAsync(localUri)
+        await MediaLib.saveToLibraryAsync(localUri)
 
-      if(localUri){
-        alert("Image is saved successfully")
+        if(localUri){
+          alert("Image is saved successfully")
+        }
+      } catch(err) {
+        alert(err)
       }
-    } catch(err) {
-      alert(err)
+    } else {
+      try {
+        const dataUrl = await domtoimage.toPng(imageRef.current, {
+          quality: 1,
+          height: 440,
+          width: 320
+        })
+
+        let link = document.createElement('a');
+        link.download = `StickerSmash-${timestamp}.png`
+        link.href = dataUrl
+        link.click()
+      } catch (err) {
+        alert(err)
+      }
     }
   };
   
